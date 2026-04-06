@@ -1,0 +1,51 @@
+{{!
+    @template local_cesubmit/my/block_content
+
+    Compact CE compliance status widget for the sidebar block.
+}}
+{{#hasframeworks}}
+    {{#frameworks}}
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong class="small">{{name}}</strong>
+            {{#status_compliant}}<span class="badge badge-success">{{statuslabel}}</span>{{/status_compliant}}
+            {{#status_inprogress}}<span class="badge badge-warning">{{statuslabel}}</span>{{/status_inprogress}}
+            {{#status_overdue}}<span class="badge badge-danger">{{statuslabel}}</span>{{/status_overdue}}
+        </div>
+        <div class="progress" style="height: 8px;" role="progressbar"
+             aria-valuenow="{{percentage}}" aria-valuemin="0" aria-valuemax="100"
+             aria-label="{{earned}} of {{required}} credits">
+            {{#status_compliant}}
+            <div class="progress-bar bg-success" style="width: {{percentage}}%"></div>
+            {{/status_compliant}}
+            {{#status_inprogress}}
+            <div class="progress-bar bg-warning" style="width: {{percentage}}%"></div>
+            {{/status_inprogress}}
+            {{#status_overdue}}
+            <div class="progress-bar bg-danger" style="width: {{percentage}}%"></div>
+            {{/status_overdue}}
+        </div>
+        <div class="small text-muted mt-1">{{earned}} / {{required}} credits</div>
+        {{#hascreditsgap}}
+        <div class="small text-muted">{{creditsgaptext}}</div>
+        {{/hascreditsgap}}
+        {{#hasdeadline}}
+        <div class="small text-muted">{{#str}}deadline, local_cesubmit{{/str}}: {{deadline}}</div>
+        {{/hasdeadline}}
+        {{#isoverdue}}
+        <div class="small text-danger font-weight-bold">{{#str}}overdue, local_cesubmit{{/str}}</div>
+        {{/isoverdue}}
+        {{^isoverdue}}
+        {{#hasdaysremaining}}
+        <div class="small {{#days_green}}text-success{{/days_green}}{{#days_amber}}text-warning{{/days_amber}}{{#days_red}}text-danger{{/days_red}}">{{daysremainingtext}}</div>
+        {{/hasdaysremaining}}
+        {{/isoverdue}}
+    </div>
+    {{/frameworks}}
+    <div class="text-center mt-2">
+        <a href="{{dashboardurl}}" class="btn btn-link btn-sm">{{viewlinktext}}</a>
+    </div>
+{{/hasframeworks}}
+{{^hasframeworks}}
+    <p class="text-muted small">{{nocreditstext}}</p>
+{{/hasframeworks}}
