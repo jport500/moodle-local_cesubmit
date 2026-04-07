@@ -89,7 +89,7 @@
                         <span class="small">{{categoryname}}</span>
                         <span class="small">
                             {{#compliant}}
-                            <span class="badge badge-success">&#10003;</span>
+                            <span class="badge badge-success">{{earned}} / {{mincredits}} &#10003;</span>
                             {{/compliant}}
                             {{#notcompliant}}
                             <span class="badge badge-warning">{{earned}} / {{mincredits}} required</span>
@@ -107,6 +107,11 @@
                     {{/hascategorygap}}
                 </div>
                 {{/categories}}
+                {{#allcategorycompliant}}{{#hascreditsgap}}
+                <div class="small text-success mt-2">
+                    &#10003; Category requirements met &mdash; {{creditsgap}} more total credits needed
+                </div>
+                {{/hascreditsgap}}{{/allcategorycompliant}}
             </div>
             {{/hascategories}}
         </div>
