@@ -114,6 +114,12 @@ final class observer {
                 ],
                 (int)$USER->id
             );
+
+            // j. Sync the tool_mutrain_credit cache so dashboards see the update.
+            \tool_mutrain\local\framework::sync_credits(
+                (int)$submission->userid,
+                (int)$frameworkid
+            );
         } catch (\Throwable $e) {
             debugging('local_cesubmit: Error posting CE credit: ' . $e->getMessage(), DEBUG_DEVELOPER);
         }
