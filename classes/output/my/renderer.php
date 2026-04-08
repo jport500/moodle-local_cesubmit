@@ -142,8 +142,53 @@ class renderer extends \plugin_renderer_base {
                 $daysrem = (int)ceil(($timeend - $now) / DAYSECS);
             }
 
+            // Sub-period compliance.
+            $subperioddetail = \tool_mutrain\api::get_user_subperiod_detail(
+                $userid, (int)$fw->id
+            );
+            $subperiods = [];
+            $hassubperiods = false;
+            $anysubperiodalert = false;
+            if (!empty($subperioddetail)) {
+                $hassubperiods = true;
+                foreach ($subperioddetail as $spd) {
+                    $spcats = [];
+                    foreach ($spd->categories as $cat) {
+                        $spcats[] = [
+                            'categoryname' => $cat->categoryname,
+                            'mincredits'   => format_float($cat->mincredits, 1),
+                            'earned'       => format_float($cat->earned, 1),
+                            'pass'         => $cat->pass,
+                            'notpass'      => !$cat->pass,
+                        ];
+                    }
+                    $subperiods[] = [
+                        'name'        => $spd->subperiod->name,
+                        'windowstart' => userdate($spd->windowstart, '%Y-%m-%d'),
+                        'windowend'   => userdate($spd->windowend, '%Y-%m-%d'),
+                        'isclosed'    => $spd->isclosed,
+                        'totalearned' => format_float($spd->totalearned, 1),
+                        'requiredcredits' => (float)$spd->subperiod->requiredcredits > 0
+                            ? format_float((float)$spd->subperiod->requiredcredits, 1)
+                            : null,
+                        'hasrequiredcredits' => (float)$spd->subperiod->requiredcredits > 0,
+                        'pass'        => $spd->pass,
+                        'notpass'     => !$spd->pass,
+                        'alert'       => $spd->alert,
+                        'categories'  => $spcats,
+                        'hasspcats'   => !empty($spcats),
+                    ];
+                    if ($spd->alert) {
+                        $anysubperiodalert = true;
+                    }
+                }
+            }
+
             $fwdata[] = [
                 'id' => (int)$fw->id,
+                'hassubperiods' => $hassubperiods,
+                'subperiods' => $subperiods,
+                'anysubperiodalert' => $anysubperiodalert,
                 'name' => $fw->name,
                 'earned' => format_float($earned, 1),
                 'required' => format_float($required, 0),

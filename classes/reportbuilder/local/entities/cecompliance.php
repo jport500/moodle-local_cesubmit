@@ -186,30 +186,45 @@ final class cecompliance extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("COALESCE({$mc}.credits, 0)", 'statuscredits')
-            ->add_field("{$f}.requiredcredits", 'statusrequired')
+            ->add_field("COALESCE({$mc}.proratedcredits, {$f}.requiredcredits)", 'statusrequired')
+            ->add_field("{$mc}.categorycompliant", 'statuscatcompliant')
+            ->add_field("{$mc}.subperiodcompliant", 'statusspcompliant')
+            ->add_field("{$mc}.subperiodalert", 'statusspalert')
             ->add_field("{$pa}.timeend", 'statustimeend')
             ->set_is_sortable(false)
             ->set_callback(static function ($value, \stdClass $row): string {
                 $now = time();
                 $earned = (float)$row->statuscredits;
                 $required = (float)$row->statusrequired;
+                $catok = (int)$row->statuscatcompliant === 1;
+                $spcompliant = $row->statusspcompliant; // null|0|1
+                $spalert = (int)($row->statusspalert ?? 0) === 1;
                 $timeend = (int)$row->statustimeend;
-                if ($earned >= $required) {
-                    return \html_writer::span(
-                        get_string('status_compliant', 'local_cesubmit'),
-                        'badge badge-success'
-                    );
-                } else if ($timeend > 0 && $timeend < $now) {
+                $overdue = $timeend > 0 && $timeend < $now;
+                $creditsmet = $earned >= $required;
+
+                if ($overdue && (!$creditsmet || $spalert)) {
                     return \html_writer::span(
                         get_string('status_overdue', 'local_cesubmit'),
                         'badge badge-danger'
                     );
-                } else {
+                }
+                if ($spalert) {
                     return \html_writer::span(
-                        get_string('status_inprogress', 'local_cesubmit'),
-                        'badge badge-warning'
+                        get_string('status_subperiodalert', 'local_cesubmit'),
+                        'badge badge-danger'
                     );
                 }
+                if ($creditsmet && $catok && (int)$spcompliant !== 0) {
+                    return \html_writer::span(
+                        get_string('status_compliant', 'local_cesubmit'),
+                        'badge badge-success'
+                    );
+                }
+                return \html_writer::span(
+                    get_string('status_inprogress', 'local_cesubmit'),
+                    'badge badge-warning'
+                );
             });
 
         // 8. Deadline.
@@ -260,8 +275,13 @@ final class cecompliance extends base {
             new lang_string('status'),
             $this->get_entity_name(),
             "CASE
-                WHEN COALESCE({$mc}.credits, 0) >= {$f}.requiredcredits THEN 'compliant'
-                WHEN {$pa}.timeend > 0 AND {$pa}.timeend < {$now} THEN 'overdue'
+                WHEN {$pa}.timeend > 0 AND {$pa}.timeend < {$now}
+                     AND (COALESCE({$mc}.credits, 0) < COALESCE({$mc}.proratedcredits, {$f}.requiredcredits)
+                          OR {$mc}.subperiodalert = 1) THEN 'overdue'
+                WHEN {$mc}.subperiodalert = 1 THEN 'subperiodalert'
+                WHEN COALESCE({$mc}.credits, 0) >= COALESCE({$mc}.proratedcredits, {$f}.requiredcredits)
+                     AND {$mc}.categorycompliant = 1
+                     AND ({$mc}.subperiodcompliant = 1 OR {$mc}.subperiodcompliant IS NULL) THEN 'compliant'
                 ELSE 'inprogress'
             END"
         ))
@@ -269,6 +289,7 @@ final class cecompliance extends base {
             ->set_options([
                 'compliant' => get_string('status_compliant', 'local_cesubmit'),
                 'inprogress' => get_string('status_inprogress', 'local_cesubmit'),
+                'subperiodalert' => get_string('status_subperiodalert', 'local_cesubmit'),
                 'overdue' => get_string('status_overdue', 'local_cesubmit'),
             ]);
 

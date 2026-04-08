@@ -34,6 +34,7 @@ $string['creditsprogress'] = '{$a->earned} of {$a->required} CE credits earned';
 $string['status_compliant'] = 'Compliant';
 $string['status_inprogress'] = 'In Progress';
 $string['status_overdue'] = 'Overdue';
+$string['status_subperiodalert'] = 'Sub-period Alert';
 $string['nocredits'] = 'No CE credits recorded yet';
 $string['nocertifications'] = 'No certifications assigned';
 $string['credithistory'] = 'Credit History';
