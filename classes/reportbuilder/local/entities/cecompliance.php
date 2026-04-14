@@ -215,7 +215,8 @@ final class cecompliance extends base {
                         'badge badge-danger'
                     );
                 }
-                if ($creditsmet && $catok && (int)$spcompliant !== 0) {
+                $spnotfailing = ($spcompliant === null || (int)$spcompliant === 1);
+                if ($creditsmet && $catok && $spnotfailing) {
                     return \html_writer::span(
                         get_string('status_compliant', 'local_cesubmit'),
                         'badge badge-success'
